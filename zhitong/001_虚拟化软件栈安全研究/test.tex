@@ -1,0 +1,74 @@
+%-*- coding: UTF-8 -*-
+% 论文总结.tex
+% 2020年7月第一周
+\documentclass[UTF8]{ctexart}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{geometry}
+\geometry{a4paper,centering,scale=0.8}
+\usepackage[format=hang,font=small,textfont=it]{caption}
+\usepackage[nottoc]{tocbibind}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{xcolor}     %高亮使用的颜色
+\definecolor{commentcolor}{RGB}{85,139,78}
+\definecolor{stringcolor}{RGB}{206,145,108}
+\definecolor{keywordcolor}{RGB}{34,34,250}
+\definecolor{backcolor}{RGB}{220,220,220}
+
+\lstset{
+ columns=fixed,       
+ numbers=left,                                        % 在左侧显示行号
+ numberstyle=\tiny\color{gray},                       % 设定行号格式
+ frame=none,                                          % 不显示背景边框
+ backgroundcolor=\color[RGB]{245,245,244},            % 设定背景颜色
+ keywordstyle=\color[RGB]{40,40,255},                 % 设定关键字颜色
+ numberstyle=\footnotesize\color{darkgray},           
+ commentstyle=\it\color[RGB]{0,96,96},                % 设置代码注释的格式
+ stringstyle=\rmfamily\slshape\color[RGB]{128,0,0},   % 设置字符串格式
+ showstringspaces=false,                              % 不显示字符串中的空格
+ language=c++,                                        % 设置语言
+}
+
+\newenvironment{myquote}
+{\begin{quote}\kaishu\zihao{-5}}
+{\end{quote}}
+
+\newcommand\degree{^\circ}
+
+\title{\heiti 虚拟化软件栈安全研究（计算机学报-中科院信工所-朱民）}
+\author{\kaishu 至彤}
+\date{\today}
+
+\bibliographystyle{plain}
+
+\newtheorem{thm}{定理}
+
+\begin{document}
+    
+    \maketitle
+
+    \clearpage
+    \section{摘要}\label{sec:diyijie}
+	在虚拟化软件栈，虚拟机监控器具有最高权限和较小的可信计算基，故而能为虚拟化系统提供安全监控和保护．但同时也引入了新的软件层，增加了脆弱性，增大了攻击面．另外，多租户模式以及软硬件平台资源共享，更加剧了新软件栈的安全威胁。
+	\begin{itemize}
+	\item[*] 分析虚拟化软件栈的安全威胁、攻击方式和威胁机理
+	\item[*] 比较了国内外相关安全方案和技术，并指出了当前仍然存在的安全问题．
+	\item[*] 对未来的研究方向进行了探讨和分析，给出了虚拟化软件栈的安全增强方案。
+	\end{itemize}
+	\clearpage
+	
+    \section{引言}\label{sec:dierjie}
+	\begin{itemize}
+	\item[*] 虚拟化扩增了传统服务器的软件栈．软件栈越大、越复杂，攻击面和脆弱性就越多，安全性则更难以保障。
+	\item[*] 虚拟化技术提供的隔离性并不强
+	\item[*] 软件漏洞，攻击者利用侧信道攻击也可窃取其它虚拟机的敏感数据
+	\item[*] 当前虚拟化的研究主要集中在对Hypervisor的保护、对虚拟机的隔离以及对VM的内部系统、应用的保护，甚至将虚拟化从可信计算基中剔除，以此来增强虚拟化软件栈的安全．
+	\end{itemize}
+	\clearpage
+	
+	\bibliography{test}
+\end{document}
+
