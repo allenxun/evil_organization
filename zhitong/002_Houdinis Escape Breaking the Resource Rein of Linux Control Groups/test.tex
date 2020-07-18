@@ -1,0 +1,129 @@
+%-*- coding: UTF-8 -*-
+% 论文总结.tex
+% 2020年7月第二周
+\documentclass[UTF8]{ctexart}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{geometry}
+\geometry{a4paper,centering,scale=0.8}
+\usepackage[format=hang,font=small,textfont=it]{caption}
+\usepackage[nottoc]{tocbibind}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{xcolor}     %高亮使用的颜色
+
+\definecolor{commentcolor}{RGB}{85,139,78}
+\definecolor{stringcolor}{RGB}{206,145,108}
+\definecolor{keywordcolor}{RGB}{34,34,250}
+\definecolor{backcolor}{RGB}{220,220,220}
+
+\lstset{
+ columns=fixed,       
+ numbers=left,                                        % 在左侧显示行号
+ numberstyle=\tiny\color{gray},                       % 设定行号格式
+ frame=none,                                          % 不显示背景边框
+ backgroundcolor=\color[RGB]{245,245,244},            % 设定背景颜色
+ keywordstyle=\color[RGB]{40,40,255},                 % 设定关键字颜色
+ numberstyle=\footnotesize\color{darkgray},           
+ commentstyle=\it\color[RGB]{0,96,96},                % 设置代码注释的格式
+ stringstyle=\rmfamily\slshape\color[RGB]{128,0,0},   % 设置字符串格式
+ showstringspaces=false,                              % 不显示字符串中的空格
+ language=c++,                                        % 设置语言
+}
+
+\newenvironment{myquote}
+{\begin{quote}\kaishu\zihao{-5}}
+{\end{quote}}
+
+\newcommand\degree{^\circ}
+
+\title{\heiti Houdini’s Escape: Breaking the Resource Rein of Linux Control Groups}
+\author{\kaishu 至彤}
+\date{\today}
+
+\bibliographystyle{plain}
+
+\newtheorem{thm}{定理}
+
+\begin{document}
+    
+    \maketitle
+
+    \clearpage
+    \section{摘要}\label{sec:diyijie}
+	LCG，也叫cgroups是操作系统级容器化的基础，cgroups机制将进程划分成有层次的进程组，并且应用不同的控制器来管理系统资源（CPU，内存，块IO），子进程会自动复制父进程的cgroups属性进行资源控制。但是这种情况下，子进程的cgroups限制和资源记账（resource accounting）在特殊情况下会失效。
+	\clearpage
+
+    \section{基础}\label{sec:dierjie}
+    \subsection{容器资源隔离}
+    容器资源隔离和管理基础是Linux Namspaces和Linux Control Groups，容器部署安全的机制包括Capabilities，SELinux，AppArmor，Seccomp和Security Namespace。
+    \subsection{cgroups层次和controller}
+    cgroups是树状结构，线程只能关联至每个层次结构的一个cgroups，但是课关联至多个层次结构，每个层次结构有多个子系统关联。所以cgroups机制能限制进程组的总资源。
+    \subsubsection{cpu controller}
+    \subsubsection{cpusets controller}
+    \subsubsection{blkio  controller}
+    \subsubsection{pid controller}
+    \subsection{cgroups继承性}
+    Fork或Clone的子进程和父进程的cgroups相同
+	\clearpage
+
+	\section{Exploiting策略生成额外工作负载}\label{sec:disnajie}
+	\subsection{内核Upcalls}
+	利用内核线程启动新进程，避免cgroups资源限制。在用户空间的进程启动内核方法（在内核空间），比如用户空间的系统调用例子：usemode helper API
+	\subsection{内核线程}
+	例子：kthreadd，kworker，ksoftirqd，migration，kswapd
+	\subsection{服务进程}
+	服务进程：进程管理，系统信息日志，debug信息
+	\subsection{中断上下文}
+	硬中断，软中断softirqs（ksoftirqd）
+	\clearpage
+	    
+	\section{案例分析}\label{sec:diwujie}
+	5个案例分析现实情况下Docker 容器破坏cgroups的资源限制，进一步在多租户的容器环境下放大资源消耗从而攻击其他容器。
+	\subsection{异常处理}
+	调用usermode helper API，通过异常触发用户空间进程，消耗200倍CPU资源，降低同宿主机容器性能85%-95%
+	\subsection{数据同步}
+	磁盘数据同步的writeback机制，系统调用：sync，syncfs，fsync，其中sync能降低系统级别的IO性能，造成Resource-Freeing Attack (RFA)和隐藏信道
+	\subsection{系统进程-Journald}
+	内核日志，系统日志与审计记录有系统进程journald记录，su（切换用户命令），添加用户或用户组，exception
+	\subsection{容器引擎}
+	增加内核线程（kworker）和容器引擎的工作负载，资源消耗可高达三倍
+	\subsection{softirq处理}
+	\subsubsection{NET softirq—NIC在包传输后触发，可被iptables放大}
+	\subsubsection{Block softirq--块设备IO中断}
+	\clearpage
+	\section{实验}\label{sec:diwujie}
+	在Amazon EC2云环境下进行实验，容器可以消耗200倍以上的资源，减少百分之九十五co-resident 容器的计算和IO资源。
+	\clearpage
+
+	\section{相关工作-容器安全}\label{sec:diliujie}
+	\begin{itemize}
+	\item[*] 系统调用限制 [\begin{upshape} \itshape Speaker: Split-Phase Execution of Application Containers\end{upshape}]
+	\item[*] 基于内存的伪文件系统攻击 [\begin{upshape} \itshape A Study on the Security Implications of Information Leakages in Container Clouds \end{upshape}]
+	\item[*] Namespaces安全策略冲突处理 [\begin{upshape} \itshape Security Namespace: Making Linux Security Frameworks Available to Containers\end{upshape}]
+	\item[*] 利用Intel SGX 构建secure Linux containers  [\begin{upshape} \itshape SCONE: Secure Linux Containers with Intel SGX][SCONE: Secure Linux Containers with Intel SGX \end{upshape}]
+	\item[*] 容器内的隐藏信道攻击  [\begin{upshape} \itshape Whispers between the Containers: High-Capacity Covert Channel Attacks in Docker \end{upshape}]
+	\end{itemize}
+	\clearpage
+	
+	\section{相关工作-云安全}\label{sec:diqijie}
+	\begin{itemize}
+	\item[*] Co-residence	
+		\begin{itemize}
+		\item[·] 侧信道攻击 [\begin{upshape} \itshape Exploring Information Leakage in Third-Party Compute Clouds \end{upshape}]
+		\item[·] 隐藏信道攻击 [\begin{upshape} \itshape 4k-Aliasing Covert Channel and Multi-Tenant Detection in IaaS Clouds \end{upshape}]
+		\item[·] 资源计费问题 [\begin{upshape} \itshape Peeking behind the curtains of serverless platforms\end{upshape}]
+		\end{itemize}
+	\item[*] DOS攻击
+		\begin{itemize}
+		\item[·] 内存，IO攻击 [\begin{upshape} \itshape An Experimental Study of Cascading Performance Interference in a Virtualized Environment \end{upshape}]
+		\item[·] resource-freeing攻击 [\begin{upshape} \itshape Resource-Freeing Attacks: Improve Your Cloud Performance  \end{upshape}]
+		\end{itemize}
+	\end{itemize}
+	\clearpage
+	
+	\bibliography{test}
+\end{document}
+
